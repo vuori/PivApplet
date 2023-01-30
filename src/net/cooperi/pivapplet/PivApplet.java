@@ -2679,7 +2679,7 @@ public class PivApplet extends Applet
 			}
 		}
 
-		for (idx = (byte)0; idx < TAG_MAX; ++idx) {
+		for (idx = (byte)0; idx <= TAG_MAX; ++idx) {
 			final File file = files[idx];
 			if (file == null)
 				continue;
