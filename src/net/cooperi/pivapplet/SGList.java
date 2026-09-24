@@ -113,9 +113,15 @@ public class SGList implements Readable {
 	 * copying.
 	 */
 	public void
-	useApdu(final short offset, final short len)
+	useApdu(final short offset, short len)
 	{
 		final TransientBuffer buf = buffers[0];
+		/*
+		 * sendOutgoing() sends at most 0xFF bytes per response, and
+		 * readToApdu() treats the whole APDU segment as sent in one go.
+		 */
+		if (len > (short)0xFF)
+			len = (short)0xFF;
 		if (len > 0) {
 			buf.free();
 			buf.setApdu(offset, len);
@@ -232,8 +238,14 @@ public class SGList implements Readable {
 	{
 		final TransientBuffer buf = buffers[state[WPTR_BUF]];
 		buf.write(take);
-		if (state[OWPTR_BUF] == 0 && state[OWPTR_WPOS] == 0)
-			state[WPTR_TOTOFF] += take;
+		/*
+		 * During a rewrite we're overwriting bytes already in this
+		 * buffer; moving on to the next one would make endRewrite()
+		 * restore the saved position into the wrong buffer.
+		 */
+		if (state[OWPTR_BUF] != 0 || state[OWPTR_WPOS] != 0)
+			return;
+		state[WPTR_TOTOFF] += take;
 		if (buf.available() == 0) {
 			buf.expand(MIN_ALLOC_LEN);
 			if (buf.available() == 0 &&
