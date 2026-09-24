@@ -2666,8 +2666,15 @@ public class PivApplet extends Applet
 			final PivSlot slot = slots[idx];
 			if (slot == null)
 				continue;
-			if (slot.asym != null)
+			if (slot.asym != null) {
 				slot.asym.getPrivate().clearKey();
+				/*
+				 * Drop the key object too, so that the slot reads
+				 * as empty (e.g. in GET METADATA) rather than as
+				 * holding a key of unknown algorithm.
+				 */
+				slot.asym = null;
+			}
 			slot.asymAlg = (byte)-1;
 			slot.imported = false;
 			if (slot.cert != null) {
